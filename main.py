@@ -147,7 +147,7 @@ class Window(customtkinter.CTk):
         self.protocol("WM_DELETE_WINDOW", self.onClose)
         self.bind('<Escape>', lambda e: self.onClose())
         self.title("Replay Report")
-        self.defualtSize = (1280, 720)
+        self.defualtSize = (1280, 740)
         self.geometry(
             f"{self.defualtSize[0]}x{self.defualtSize[1]}+{int(self.winfo_screenwidth() / 2 - self.defualtSize[0] / 2)}+{int(self.winfo_screenheight() / 2 - self.defualtSize[1] / 2)}(pixel)")
 
@@ -392,20 +392,21 @@ class Window(customtkinter.CTk):
                                                         text="타임라인",
                                                         anchor='w',
                                                         font=customtkinter.CTkFont(size=18))
-                self.timelineText.grid(row=2, column=0, padx=(20,20),pady=(5, 5), sticky="ew")
+                self.timelineText.grid(row=2, column=0, padx=(10,10),pady=(5, 5), sticky="ew")
 
                 self.timeline = customtkinter.CTkScrollableFrame(root,
                                                             corner_radius=0,
-                                                            height=80,
+                                                            height=70,
                                                             orientation="horizontal")
-                self.timeline.grid(row=3,column=0,pady=(5,5), sticky="ew")
-
-                self.testTimeLine = customtkinter.CTkFrame(self.timeline,
-                                                           width=5,
-                                                           corner_radius=0,
-                                                           fg_color='black')
-                self.testTimeLine.pack(padx=(0,0),side=customtkinter.LEFT)
+                self.timeline.grid(row=3,column=0, padx=(10,10),pady=(5,5), sticky="ew")
                 self.timelineTKList = []
+
+                self.nodeData = customtkinter.CTkLabel(root,
+                                                        text="데이터 : ",
+                                                        anchor='w',
+                                                        font=customtkinter.CTkFont(size=14))
+                self.nodeData.grid(row=4, column=0, padx=(10,10),pady=(5, 0), sticky="ew")
+
 
             def InitSend(root, page):
                 root = page['root']
@@ -576,6 +577,7 @@ class Window(customtkinter.CTk):
                                                             text=text,
                                                             width=20,
                                                             corner_radius=3,
+                                                           command=lambda: self.nodeData.configure(text=f"데이터 : {i[0]}")
                                                             )
 
                             temp.pack(padx=(1, 1), pady=pady, fill='y', side=customtkinter.LEFT)
@@ -749,6 +751,7 @@ class Window(customtkinter.CTk):
             remove_tk(i[1])
         self.timelineTKList.clear()
         processInputList.clear()
+        self.nodeData.configure(text="데이터 : ")
 
 
     def LoadRecord(self):
@@ -793,6 +796,7 @@ class Window(customtkinter.CTk):
                                                         text=text,
                                                         width=20,
                                                         corner_radius=3,
+                                                        command=lambda :self.nodeData.configure(text=f"데이터 : {i[0]}")
                                                         )
 
                         temp.pack(padx=(1, 1), pady=pady, fill='y', side=customtkinter.LEFT)

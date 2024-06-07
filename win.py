@@ -57,6 +57,8 @@ def send_input(data, offset):
     if data['type'] == 'Keyboard':
         if data['pressed'] == "Down":
             pyautogui.keyDown(data['data'])
+            pyautogui.hotkey()
+            #pyautogui.
         if data['pressed'] == "Up":
             pyautogui.keyUp(data['data'])
     else:
@@ -68,7 +70,7 @@ def send_input(data, offset):
         if data['event'] == "Move":
             win32api.SetCursorPos((data['data'][0] + offset[0], data['data'][1] + offset[1]))
         if data['event'] == "Scroll":
-            pyautogui.scroll(3*(-1 if data['pressed'] == "Down" else 1))#, data['data'][0], data['data'][1]
+            pyautogui.scroll(120*(-1 if data['pressed'] == "Down" else 1))#, data['data'][0], data['data'][1]
 
 
 def enum_windows_callback(hwnd, window_list):
