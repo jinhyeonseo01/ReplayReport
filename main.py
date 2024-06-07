@@ -577,7 +577,7 @@ class Window(customtkinter.CTk):
                                                             text=text,
                                                             width=20,
                                                             corner_radius=3,
-                                                           command=lambda: self.nodeData.configure(text=f"데이터 : {i[0]}")
+                                                           command=lambda: self.nodeData.configure(text=f"데이터 : {i}")
                                                             )
 
                             temp.pack(padx=(1, 1), pady=pady, fill='y', side=customtkinter.LEFT)
