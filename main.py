@@ -12,7 +12,6 @@ import tkinter
 from tkinter import filedialog
 import customtkinter
 import pynput.keyboard
-
 import win32con
 import win32api
 import win32gui
@@ -30,13 +29,6 @@ from email.message import EmailMessage
 from pynput import keyboard, mouse
 
 from queue import Queue, Empty
-
-
-#pyautogui
-#customtkinter
-#pillow
-#pynput
-#pywin32
 
 
 logging.basicConfig(
@@ -146,7 +138,7 @@ class Window(customtkinter.CTk):
         super().__init__()
         self.protocol("WM_DELETE_WINDOW", self.onClose)
         self.bind('<Escape>', lambda e: self.onClose())
-        self.title("Replay Report")
+        self.title("Replay Reporter")
         self.defualtSize = (1280, 740)
         self.geometry(
             f"{self.defualtSize[0]}x{self.defualtSize[1]}+{int(self.winfo_screenwidth() / 2 - self.defualtSize[0] / 2)}+{int(self.winfo_screenheight() / 2 - self.defualtSize[1] / 2)}(pixel)")
@@ -556,7 +548,7 @@ class Window(customtkinter.CTk):
                 if self.isRecording and (not self.isPause):
                     for i in processInputList:
                         if (i['type'] == 'Keyboard' and i['pressed'] == "Down"):
-                            if i['data'] == 'f12':
+                            if i['data'] == win.vk_mapping['f12']:
                                 self.Stop()
                                 break
                         if(not any(j[0] == i for j in self.timelineTKList)):
@@ -829,15 +821,15 @@ class Window(customtkinter.CTk):
         return maintype, subtype
 
     def SendEmail(self,email, title, context):
-        id = 'niclrain01@gmail.com'
-        passwd = 'cyxo snsd zxcq xysk'  # this is app password
+        id = ''  # this is emailID
+        passwd = ''  # this is app password
         mail_server = smtplib.SMTP('smtp.gmail.com', 587)
         mail_server.ehlo()
         mail_server.starttls()
         mail_server.login(id, passwd)
         msg = EmailMessage()
         msg['Subject'] = title
-        msg['From'] = 'Record Replay'
+        msg['From'] = 'Record Replayer'
         msg['To'] = email
         msg.set_content(context)
 
@@ -873,7 +865,7 @@ def on_key_release(key):
         'data': keyString,
         'time': int(time.perf_counter_ns() - processOffsetTime)
     })
-    #print(f'Key released: {key}')
+    print(f'Key released: {keyString}')
     #keyboard.KeyCode.from_char()
 
 def on_mouse(x, y, button, pressed):

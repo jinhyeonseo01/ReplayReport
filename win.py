@@ -6,7 +6,58 @@ import win32process
 from pynput import keyboard, mouse
 import pyautogui
 
+import ctypes
 import time
+
+PUL = ctypes.POINTER(ctypes.c_ulong)
+class KeyBdInput(ctypes.Structure):
+    _fields_ = [("wVk", ctypes.c_ushort),
+                ("wScan", ctypes.c_ushort),
+                ("dwFlags", ctypes.c_ulong),
+                ("time", ctypes.c_ulong),
+                ("dwExtraInfo", PUL)]
+
+class HardwareInput(ctypes.Structure):
+    _fields_ = [("uMsg", ctypes.c_ulong),
+                ("wParamL", ctypes.c_short),
+                ("wParamH", ctypes.c_ushort)]
+
+class MouseInput(ctypes.Structure):
+    _fields_ = [("dx", ctypes.c_long),
+                ("dy", ctypes.c_long),
+                ("mouseData", ctypes.c_ulong),
+                ("dwFlags", ctypes.c_ulong),
+                ("time", ctypes.c_ulong),
+                ("dwExtraInfo", PUL)]
+
+class Input_I(ctypes.Union):
+    _fields_ = [("ki", KeyBdInput),
+                ("mi", MouseInput),
+                ("hi", HardwareInput)]
+
+class Input(ctypes.Structure):
+    _fields_ = [("type", ctypes.c_ulong),
+                ("ii", Input_I)]
+
+def press_key(hexKeyCode):
+    extra = ctypes.c_ulong(0)
+    ii_ = Input_I()
+    ii_.ki = KeyBdInput( hexKeyCode, 0x48, 0, 0, ctypes.pointer(extra) )
+    x = Input( ctypes.c_ulong(1), ii_ )
+    ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
+
+def release_key(hexKeyCode):
+    extra = ctypes.c_ulong(0)
+    ii_ = Input_I()
+    ii_.ki = KeyBdInput( hexKeyCode, 0x48, 0x0002, 0, ctypes.pointer(extra) )
+    x = Input( ctypes.c_ulong(1), ii_ )
+    ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
+
+def press_and_release_key(hexKeyCode):
+    press_key(hexKeyCode)
+    time.sleep(0.05)
+    release_key(hexKeyCode)
+
 
 def is_main_window(hwnd):
     # 윈도우가 가시적인지 확인
@@ -55,12 +106,15 @@ def send_key_event(hwnd, key):
 
 def send_input(data, offset):
     if data['type'] == 'Keyboard':
-        if data['pressed'] == "Down":
-            pyautogui.keyDown(data['data'])
-            pyautogui.hotkey()
-            #pyautogui.
-        if data['pressed'] == "Up":
-            pyautogui.keyUp(data['data'])
+        if (data['data'] != None):
+            if data['pressed'] == "Down":
+                #pyautogui.keyDown(data['data'])
+                press_key(data['data'])
+            if data['pressed'] == "Up":
+                #pyautogui.keyUp(data['data'])
+                release_key(data['data'])
+        else:
+            print(f"Error:{data}")
     else:
         if data['event'] == "Click":
             if data['pressed'] == "Down":
@@ -134,7 +188,88 @@ special_keys = {
     keyboard.Key.cmd: win32con.VK_LWIN,  # left Windows key
     keyboard.Key.menu: win32con.VK_APPS,
 }
-
+key_mapping = {
+    keyboard.Key.alt: 'alt',
+    keyboard.Key.alt_l: 'altleft',
+    keyboard.Key.alt_r: 'altright',
+    keyboard.Key.backspace: 'backspace',
+    keyboard.Key.caps_lock: 'capslock',
+    keyboard.Key.cmd: 'win',
+    keyboard.Key.cmd_l: 'winleft',
+    keyboard.Key.cmd_r: 'winright',
+    keyboard.Key.ctrl: 'ctrl',
+    keyboard.Key.ctrl_l: 'ctrlleft',
+    keyboard.Key.ctrl_r: 'ctrlright',
+    keyboard.Key.delete: 'delete',
+    keyboard.Key.down: 'down',
+    keyboard.Key.end: 'end',
+    keyboard.Key.enter: 'enter',
+    keyboard.Key.esc: 'esc',
+    keyboard.Key.f1: 'f1',
+    keyboard.Key.f2: 'f2',
+    keyboard.Key.f3: 'f3',
+    keyboard.Key.f4: 'f4',
+    keyboard.Key.f5: 'f5',
+    keyboard.Key.f6: 'f6',
+    keyboard.Key.f7: 'f7',
+    keyboard.Key.f8: 'f8',
+    keyboard.Key.f9: 'f9',
+    keyboard.Key.f10: 'f10',
+    keyboard.Key.f11: 'f11',
+    keyboard.Key.f12: 'f12',
+    keyboard.Key.home: 'home',
+    keyboard.Key.left: 'left',
+    keyboard.Key.page_down: 'pagedown',
+    keyboard.Key.page_up: 'pageup',
+    keyboard.Key.right: 'right',
+    keyboard.Key.shift: 'shift',
+    keyboard.Key.shift_l: 'shiftleft',
+    keyboard.Key.shift_r: 'shiftright',
+    keyboard.Key.space: 'space',
+    keyboard.Key.tab: 'tab',
+    keyboard.Key.up: 'up'
+}
+vk_mapping = {
+    'alt': 0x12,
+    'altleft': 0xA4,
+    'altright': 0xA5,
+    'backspace': 0x08,
+    'capslock': 0x14,
+    'win': 0x5B,
+    'winleft': 0x5B,
+    'winright': 0x5C,
+    'ctrl': 0x11,
+    'ctrlleft': 0xA2,
+    'ctrlright': 0xA3,
+    'delete': 0x2E,
+    'down': 0x28,
+    'end': 0x23,
+    'enter': 0x0D,
+    'esc': 0x1B,
+    'f1': 0x70,
+    'f2': 0x71,
+    'f3': 0x72,
+    'f4': 0x73,
+    'f5': 0x74,
+    'f6': 0x75,
+    'f7': 0x76,
+    'f8': 0x77,
+    'f9': 0x78,
+    'f10': 0x79,
+    'f11': 0x7A,
+    'f12': 0x7B,
+    'home': 0x24,
+    'left': 0x25,
+    'pagedown': 0x22,
+    'pageup': 0x21,
+    'right': 0x27,
+    'shift': 0x10,
+    'shiftleft': 0xA0,
+    'shiftright': 0xA1,
+    'space': 0x20,
+    'tab': 0x09,
+    'up': 0x26
+}
 def ConvertKeyKeyboardToWin32(key):
     data = None
     if (key != None):
@@ -148,9 +283,12 @@ def ConvertKeyKeyboardToAutoGUI(key):
     data = None
     if (key != None):
         if isinstance(key, keyboard.KeyCode):
-            data = key.char
+            data = key.vk
+            #if(key.char == None):
+            #    data = str(key.vk)
         elif isinstance(key, keyboard.Key):
-            data = str(key).split('.')[-1]
+            data = vk_mapping[key_mapping[key]]
+
     return data
 
 def ConvertKeyMouseToAutoGUI(key):
