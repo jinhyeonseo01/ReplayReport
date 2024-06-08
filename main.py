@@ -133,6 +133,37 @@ def forget(widget):
     widget.pack_forget()
     widget.place_forget()
 
+
+def RecordPlay(window):
+    while(window.isPlay):
+        nowTime = time.perf_counter_ns()
+        deltaTime = nowTime - playStartTime
+        # print(deltaTime/(10**9))
+        if (len(playList) == 0):
+            window.Stop()
+        else:
+            while (len(playList) != 0 and deltaTime >= playList[0]['time']):  # 이부분 while로
+                if (playList[0]['type'] == 'Mouse' and playList[0]['event'] == 'Move'):
+                    dataList = playList[0]['data']
+                    if (len(dataList) != 0):
+                        dataTime = dataList[0][2]
+                        if (deltaTime >= dataTime):
+                            newData = playList[0].copy()
+                            newData['data'] = dataList[0]
+                            win.send_input(newData, processOffset)
+
+                            dataList.remove(dataList[0])
+                        else:
+                            break
+                    else:
+                        playList.remove(playList[0])
+                    pass
+                else:
+                    newData = playList[0]
+                    win.send_input(newData, processOffset)
+                    playList.remove(playList[0])
+        time.sleep(0.0001)
+
 class Window(customtkinter.CTk):
     def __init__(self):
         super().__init__()
@@ -512,39 +543,6 @@ class Window(customtkinter.CTk):
                         canvas.create_image(0, 0, anchor=customtkinter.NW,image=image)
                     self.mainImageUpdateTime = nowTime
 
-                if(self.isPlay and (not self.isPause)): #재생
-                    nowTime = time.perf_counter_ns()
-                    deltaTime = nowTime - playStartTime
-                    #print(deltaTime/(10**9))
-                    if(len(playList) == 0):
-                        self.Stop()
-                    else:
-                        if(len(playList) != 0):
-                            print(playList[0]['time']/(10**9))
-                        while(len(playList) != 0 and deltaTime >= playList[0]['time']): # 이부분 while로
-                            print(playList[0])
-                            if (playList[0]['type'] == 'Mouse' and playList[0]['event'] == 'Move'):
-                                dataList = playList[0]['data']
-                                if(len(dataList) != 0):
-                                    dataTime = dataList[0][2]
-                                    if (deltaTime >= dataTime):
-                                        newData = playList[0].copy()
-                                        newData['data'] = dataList[0]
-                                        win.send_input(newData, processOffset)
-
-                                        dataList.remove(dataList[0])
-                                    else:
-                                        break
-                                else:
-                                    playList.remove(playList[0])
-                                pass
-                            else:
-                                print("실행")
-                                newData = playList[0]
-                                win.send_input(newData, processOffset)
-                                playList.remove(playList[0])
-
-
                 if self.isRecording and (not self.isPause):
                     for i in processInputList:
                         if (i['type'] == 'Keyboard' and i['pressed'] == "Down"):
@@ -628,11 +626,11 @@ class Window(customtkinter.CTk):
                 # 재생중이었을때
                 pass
             if (self.isRecording):
-                print(processInputList)
-                while(processInputList[0]['type'] == 'Mouse' and processInputList[0]['event'] == 'Click'):
-                    processInputList.remove(processInputList[0])
-                recordData['processTitle'] = processTitle
-                recordData['processInputList'] = processInputList.copy()
+                if(len(processInputList) != 0):
+                    while(processInputList[0]['type'] == 'Mouse' and processInputList[0]['event'] == 'Click'):
+                        processInputList.remove(processInputList[0])
+                    recordData['processTitle'] = processTitle
+                    recordData['processInputList'] = processInputList.copy()
                 pass
             pass
         self.recordStateText.configure(text="정지", text_color='black')
@@ -659,6 +657,8 @@ class Window(customtkinter.CTk):
                 win32gui.SetForegroundWindow(hwnd)
                 rect = win.get_window_rect(hwnd)
                 processOffset = (rect[0], rect[1])
+            else:
+                self.Stop()
 
         pass
 
@@ -679,6 +679,9 @@ class Window(customtkinter.CTk):
                 rect = win.get_window_rect(hwnd)
                 processOffset = (rect[0], rect[1])
 
+                threading.Thread(target=RecordPlay,daemon=True, args=[self]).start()
+            else:
+                self.Stop()
             # hid =  win.find_hwnd_by_title('Sannabi')
             # win32gui.ShowWindow(hid, win32con.SW_RESTORE)
             # win32gui.SetForegroundWindow(hid)
@@ -858,14 +861,14 @@ def on_key_press(key:pynput.keyboard.Key):
 def on_key_release(key):
     # 키를 누를 때 실행되는 함수
     keyString = win.ConvertKeyKeyboardToAutoGUI(key)
-    print((time.perf_counter_ns() - processOffsetTime) / (10 ** 9))
+    #print((time.perf_counter_ns() - processOffsetTime) / (10 ** 9))
     processInputList.append({
         'type': "Keyboard",
         'pressed': "Up",
         'data': keyString,
         'time': int(time.perf_counter_ns() - processOffsetTime)
     })
-    print(f'Key released: {keyString}')
+    #print(f'Key released: {keyString}')
     #keyboard.KeyCode.from_char()
 
 def on_mouse(x, y, button, pressed):
