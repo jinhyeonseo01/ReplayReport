@@ -101,7 +101,7 @@ def processImageSet():
         hwnd = win.find_hwnd_by_title(processTitle)
         if(hwnd != 0):
             left, top, right, bottom = win.get_window_rect(hwnd)
-            left += 2
+            left += 5
             right -= 6
             bottom -= 6
             if processImage != None:
